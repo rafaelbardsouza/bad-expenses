@@ -23,15 +23,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<CurrencyItem> _items = [];
+  final List<ExpenseItem> _items = [];
 
   double get _totalValue {
     return _items.fold(0.0, (sum, item) => sum + double.parse(item.value));
   }
 
-  void _showAddCurrencyModal(BuildContext context) {
-    String currencyName = '';
-    String currencyValue = '';
+  int _nextId = 1;
+
+  void _showAddExpenseModal(BuildContext context) {
+    String expenseName = '';
+    String expenseValue = '';
 
     showModalBottomSheet(
       backgroundColor: Colors.black,
@@ -44,38 +46,46 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               TextField(
                 decoration: InputDecoration(
-                  labelText: 'Currency Name',
-                  labelStyle: TextStyle(color: Colors.white), // Set label color to white
+                  labelText: 'Expense Name',
+                  labelStyle: TextStyle(
+                      color: Colors.white), // Set label color to white
                 ),
-                style: TextStyle(color: Colors.white), // Set input text color to white
+                style: TextStyle(
+                    color: Colors.white), // Set input text color to white
                 onChanged: (value) {
-                  currencyName = value;
+                  expenseName = value;
                 },
               ),
               SizedBox(height: 16.0), // Add margin between TextFields
               TextField(
                 decoration: InputDecoration(
-                  labelText: 'Currency Value',
-                  labelStyle: TextStyle(color: Colors.white), // Set label color to white
+                  labelText: 'Expense Value',
+                  labelStyle: TextStyle(
+                      color: Colors.white), // Set label color to white
                 ),
                 keyboardType: TextInputType.number,
-                style: TextStyle(color: Colors.white), // Set input text color to white
+                style: TextStyle(
+                    color: Colors.white), // Set input text color to white
                 onChanged: (value) {
-                  currencyValue = value;
+                  expenseValue = value;
                 },
               ),
-              SizedBox(height: 16.0), // Add margin between TextField and ElevatedButton
+              SizedBox(
+                  height:
+                      16.0), // Add margin between TextField and ElevatedButton
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    _items.add(CurrencyItem(name: currencyName, value: currencyValue));
+                    _items.add(ExpenseItem(
+                        id: _nextId++, name: expenseName, value: expenseValue));
                   });
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color.fromARGB(36, 255, 255, 255),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16), // Adjust the radius for rounded corners
+                    borderRadius: BorderRadius.circular(
+                        16), // Adjust the radius for rounded corners
                   ),
                   padding: EdgeInsets.all(10),
                 ),
@@ -89,6 +99,84 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+  }
+
+  void _editExpenseItem(int index) {
+    TextEditingController nameController =
+        TextEditingController(text: _items[index].name);
+    TextEditingController valueController =
+        TextEditingController(text: _items[index].value);
+
+    showModalBottomSheet(
+      backgroundColor: Colors.black,
+      context: context,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Expense Name',
+                  labelStyle: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 16.0),
+              TextField(
+                controller: valueController,
+                decoration: InputDecoration(
+                  labelText: 'Expense Value',
+                  labelStyle: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _items[index] = ExpenseItem(
+                      id: _items[index].id,
+                      name: nameController.text,
+                      value: valueController.text,
+                    );
+                  });
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromARGB(36, 255, 255, 255),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: EdgeInsets.all(10),
+                ),
+                child: Text(
+                  'Save',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _deleteExpenseItem(int index) {
+    setState(() {
+      _items.removeAt(index);
+    });
   }
 
   @override
@@ -133,12 +221,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
+                    '#${_items[index].id.toString()}',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Text(
                     _items[index].name,
                     style: TextStyle(color: Colors.white),
                   ),
                   Text(
                     _items[index].value,
                     style: TextStyle(color: Colors.white),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                          onPressed: () => _editExpenseItem(index),
+                          icon: Icon(Icons.edit, color: Colors.white)),
+                      IconButton(
+                          onPressed: () => _deleteExpenseItem(index),
+                          icon: Icon(Icons.delete, color: Colors.white)),
+                    ],
                   ),
                 ],
               ),
@@ -147,7 +250,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddCurrencyModal(context),
+        onPressed: () => _showAddExpenseModal(context),
         backgroundColor: Color.fromARGB(36, 255, 255, 255),
         child: const Text(
           '💸',
@@ -161,9 +264,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class CurrencyItem {
+class ExpenseItem {
+  final int id;
   final String name;
   final String value;
 
-  CurrencyItem({required this.name, required this.value});
+  ExpenseItem({required this.id, required this.name, required this.value});
 }
