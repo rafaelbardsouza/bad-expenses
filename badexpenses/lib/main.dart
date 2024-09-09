@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -32,8 +34,12 @@ class _MyHomePageState extends State<MyHomePage> {
   int _nextId = 1;
 
   void _showAddExpenseModal(BuildContext context) {
-    String expenseName = '';
-    String expenseValue = '';
+    // Create controllers for the text fields
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController valueController = TextEditingController();
+
+    // Create a global key for the form state
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
       backgroundColor: Colors.black,
@@ -41,60 +47,78 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Expense Name',
-                  labelStyle: TextStyle(
-                      color: Colors.white), // Set label color to white
-                ),
-                style: TextStyle(
-                    color: Colors.white), // Set input text color to white
-                onChanged: (value) {
-                  expenseName = value;
-                },
-              ),
-              SizedBox(height: 16.0), // Add margin between TextFields
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Expense Value',
-                  labelStyle: TextStyle(
-                      color: Colors.white), // Set label color to white
-                ),
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                    color: Colors.white), // Set input text color to white
-                onChanged: (value) {
-                  expenseValue = value;
-                },
-              ),
-              SizedBox(
-                  height:
-                      16.0), // Add margin between TextField and ElevatedButton
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _items.add(ExpenseItem(
-                        id: _nextId++, name: expenseName, value: expenseValue));
-                  });
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(36, 255, 255, 255),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        16), // Adjust the radius for rounded corners
+          child: Form(
+            key: _formKey, // Attach the form key to the Form widget
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Expense Name',
+                    labelStyle: TextStyle(
+                        color: Colors.white), // Set label color to white
                   ),
-                  padding: EdgeInsets.all(10),
+                  style: TextStyle(
+                      color: Colors.white), // Set input text color to white
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an expense name'; // Validation message
+                    }
+                    return null;
+                  },
                 ),
-                child: Text(
-                  '+',
-                  style: TextStyle(fontSize: 30, color: Colors.white),
+                SizedBox(height: 16.0), // Add margin between TextFields
+                TextFormField(
+                  controller: valueController,
+                  decoration: InputDecoration(
+                    labelText: 'Expense Value',
+                    labelStyle: TextStyle(
+                        color: Colors.white), // Set label color to white
+                  ),
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                      color: Colors.white), // Set input text color to white
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an expense value'; // Validation message
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid number'; // Validation message
+                    }
+                    return null;
+                  },
                 ),
-              ),
-            ],
+                SizedBox(
+                    height:
+                        16.0), // Add margin between TextField and ElevatedButton
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      setState(() {
+                        _items.add(ExpenseItem(
+                            id: _nextId++,
+                            name: nameController.text,
+                            value: valueController.text));
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(36, 255, 255, 255),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          16), // Adjust the radius for rounded corners
+                    ),
+                    padding: EdgeInsets.all(10),
+                  ),
+                  child: Text(
+                    '+',
+                    style: TextStyle(fontSize: 30, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -102,10 +126,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _editExpenseItem(int index) {
-    TextEditingController nameController =
+    // Create controllers for the text fields with initial values
+    final TextEditingController nameController =
         TextEditingController(text: _items[index].name);
-    TextEditingController valueController =
+    final TextEditingController valueController =
         TextEditingController(text: _items[index].value);
+
+    // Create a global key for the form state
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
       backgroundColor: Colors.black,
@@ -113,60 +141,80 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'Expense Name',
-                  labelStyle: TextStyle(
+          child: Form(
+            key: _formKey, // Attach the form key to the Form widget
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Expense Name',
+                    labelStyle: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: TextStyle(
                     color: Colors.white,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an expense name'; // Validation message
+                    }
+                    return null;
+                  },
                 ),
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: valueController,
-                decoration: InputDecoration(
-                  labelText: 'Expense Value',
-                  labelStyle: TextStyle(
+                SizedBox(height: 16.0),
+                TextFormField(
+                  controller: valueController,
+                  decoration: InputDecoration(
+                    labelText: 'Expense Value',
+                    labelStyle: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
                     color: Colors.white,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an expense value'; // Validation message
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid number'; // Validation message
+                    }
+                    return null;
+                  },
                 ),
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _items[index] = ExpenseItem(
-                      id: _items[index].id,
-                      name: nameController.text,
-                      value: valueController.text,
-                    );
-                  });
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(36, 255, 255, 255),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      setState(() {
+                        _items[index] = ExpenseItem(
+                          id: _items[index].id,
+                          name: nameController.text,
+                          value: valueController.text,
+                        );
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(36, 255, 255, 255),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: EdgeInsets.all(10),
                   ),
-                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    'Save',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
                 ),
-                child: Text(
-                  'Save',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
